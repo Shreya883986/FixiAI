@@ -1,7 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useCallback, useRef, useState } from "react";
 import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Zap, Shield, ImageIcon, Wand2, Download } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Shield, ImageIcon, Wand2, Download, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
+import { validateImageFile } from "@/lib/storage";
 import logoSrc from "@/assets/fixi-logo.png";
 
 export const Route = createFileRoute("/")({
@@ -59,21 +62,15 @@ function HomePage() {
               cutout in seconds. No skill required.
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild variant="hero" size="xl">
-                <Link to="/register">
-                  Try it free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="glow" size="xl">
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <HeroUpload />
+              <Button asChild variant="glow" size="lg">
                 <Link to="/pricing">See pricing</Link>
               </Button>
+              <p className="text-xs text-muted-foreground">
+                No signup required • Try 1 image free
+              </p>
             </div>
-
-            <p className="mt-6 text-xs text-muted-foreground">
-              5 free images per day · No credit card required
-            </p>
           </div>
 
           {/* Visual demo card */}
@@ -192,6 +189,101 @@ function FeatureCard({
       </div>
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
+    </div>
+  );
+}
+
+function HeroUpload() {
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFile = useCallback(
+    (file: File) => {
+      const error = validateImageFile(file);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          sessionStorage.setItem(
+            "fixi:pending-upload",
+            JSON.stringify({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              dataUrl: reader.result,
+            }),
+          );
+        } catch {
+          toast.error("Image too large to stage in browser. Try a smaller file.");
+          return;
+        }
+        navigate({ to: "/app" });
+      };
+      reader.onerror = () => toast.error("Could not read file");
+      reader.readAsDataURL(file);
+    },
+    [navigate],
+  );
+
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) handleFile(file);
+    },
+    [handleFile],
+  );
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={onDrop}
+      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+      }}
+      className={`glass group relative w-full max-w-xl cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center shadow-card-glow transition-all ${
+        isDragging
+          ? "border-primary bg-primary/10 shadow-glow"
+          : "border-primary/40 hover:border-primary hover:shadow-glow-sm"
+      }`}
+      aria-label="Upload an image to remove its background"
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+          e.target.value = "";
+        }}
+      />
+      <div className="flex flex-col items-center gap-3">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-brand-soft text-primary ring-1 ring-primary/30 transition-transform group-hover:scale-110">
+          <UploadCloud className="h-7 w-7" />
+        </div>
+        <div>
+          <p className="text-base font-semibold text-foreground">
+            Drop an image to remove its background
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            or <span className="text-primary underline-offset-4 group-hover:underline">click to browse</span> · JPG, PNG, WEBP · up to 10 MB
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
