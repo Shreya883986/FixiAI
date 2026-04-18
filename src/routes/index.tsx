@@ -1,7 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useCallback, useRef, useState } from "react";
 import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Zap, Shield, ImageIcon, Wand2, Download } from "lucide-react";
+import { ArrowRight, Sparkles, Zap, Shield, ImageIcon, Wand2, Download, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
+import { validateImageFile } from "@/lib/storage";
 import logoSrc from "@/assets/fixi-logo.png";
 
 export const Route = createFileRoute("/")({
