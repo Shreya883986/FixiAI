@@ -192,3 +192,98 @@ function FeatureCard({
     </div>
   );
 }
+
+function HeroUpload() {
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFile = useCallback(
+    (file: File) => {
+      const error = validateImageFile(file);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          sessionStorage.setItem(
+            "fixi:pending-upload",
+            JSON.stringify({
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              dataUrl: reader.result,
+            }),
+          );
+        } catch {
+          toast.error("Image too large to stage in browser. Try a smaller file.");
+          return;
+        }
+        navigate({ to: "/app" });
+      };
+      reader.onerror = () => toast.error("Could not read file");
+      reader.readAsDataURL(file);
+    },
+    [navigate],
+  );
+
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) handleFile(file);
+    },
+    [handleFile],
+  );
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setIsDragging(true);
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={onDrop}
+      onClick={() => inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+      }}
+      className={`glass group relative w-full max-w-xl cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center shadow-card-glow transition-all ${
+        isDragging
+          ? "border-primary bg-primary/10 shadow-glow"
+          : "border-primary/40 hover:border-primary hover:shadow-glow-sm"
+      }`}
+      aria-label="Upload an image to remove its background"
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/jpg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+          e.target.value = "";
+        }}
+      />
+      <div className="flex flex-col items-center gap-3">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-brand-soft text-primary ring-1 ring-primary/30 transition-transform group-hover:scale-110">
+          <UploadCloud className="h-7 w-7" />
+        </div>
+        <div>
+          <p className="text-base font-semibold text-foreground">
+            Drop an image to remove its background
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            or <span className="text-primary underline-offset-4 group-hover:underline">click to browse</span> · JPG, PNG, WEBP · up to 10 MB
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
