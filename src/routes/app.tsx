@@ -23,7 +23,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/app")({
   head: () => ({
     meta: [
-      { title: "Dashboard — SnapCut AI" },
+      { title: "Dashboard — Fixi AI" },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -369,7 +369,7 @@ function UploadCard({ upload, onChanged }: { upload: Upload; onChanged: () => vo
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `snapcut-${upload.id.slice(0, 8)}.png`;
+    a.download = `fixi-${upload.id.slice(0, 8)}.png`;
     a.click();
     URL.revokeObjectURL(url);
   }

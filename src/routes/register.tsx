@@ -15,8 +15,8 @@ import { Loader2 } from "lucide-react";
 export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
-      { title: "Create account — SnapCut AI" },
-      { name: "description", content: "Create your free SnapCut AI account. 5 images per day, no card required." },
+      { title: "Create account — Fixi AI" },
+      { name: "description", content: "Create your free Fixi AI account. 5 images per day, no card required." },
     ],
   }),
   component: RegisterPage,

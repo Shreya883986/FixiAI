@@ -1,7 +1,7 @@
-import logoSrc from "@/assets/snapcut-logo.png";
+import logoSrc from "@/assets/fixi-logo.png";
 
 export function Logo({ className = "h-8 w-8" }: { className?: string }) {
-  return <img src={logoSrc} alt="SnapCut AI" className={className} />;
+  return <img src={logoSrc} alt="Fixi AI" className={className} />;
 }
 
 export function LogoMark({ size = 40 }: { size?: number }) {
@@ -9,7 +9,7 @@ export function LogoMark({ size = 40 }: { size?: number }) {
     <div className="flex items-center gap-2.5">
       <img
         src={logoSrc}
-        alt="SnapCut AI"
+        alt="Fixi AI"
         style={{ width: size, height: size }}
         className="rounded-lg"
       />

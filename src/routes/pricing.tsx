@@ -6,13 +6,13 @@ import { Check, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — SnapCut AI" },
+      { title: "Pricing — Fixi AI" },
       {
         name: "description",
         content:
           "Simple pricing for AI background removal. Start free with 5 images per day. Go Pro for unlimited.",
       },
-      { property: "og:title", content: "SnapCut AI Pricing" },
+      { property: "og:title", content: "Fixi AI Pricing" },
       { property: "og:description", content: "Free to start. Pro for unlimited cutouts." },
     ],
   }),

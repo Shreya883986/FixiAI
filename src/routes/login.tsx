@@ -16,8 +16,8 @@ import { useEffect } from "react";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — SnapCut AI" },
-      { name: "description", content: "Sign in to your SnapCut AI account." },
+      { title: "Sign in — Fixi AI" },
+      { name: "description", content: "Sign in to your Fixi AI account." },
     ],
   }),
   component: LoginPage,

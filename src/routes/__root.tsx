@@ -33,14 +33,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SnapCut AI — AI Background Remover, One Click" },
+      { title: "Fixi AI — AI Background Remover, One Click" },
       {
         name: "description",
         content:
           "Remove image backgrounds in seconds with AI. Pixel-perfect cutouts for product photos, portraits, and design. Free to start.",
       },
-      { name: "author", content: "SnapCut AI" },
-      { property: "og:title", content: "SnapCut AI — AI Background Remover" },
+      { name: "author", content: "Fixi AI" },
+      { property: "og:title", content: "Fixi AI — AI Background Remover" },
       { property: "og:description", content: "Pixel-perfect AI background removal in one click." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

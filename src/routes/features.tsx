@@ -5,16 +5,16 @@ import { Wand2, Zap, Shield, Globe, Layers, Lock } from "lucide-react";
 export const Route = createFileRoute("/features")({
   head: () => ({
     meta: [
-      { title: "Features — SnapCut AI" },
+      { title: "Features — Fixi AI" },
       {
         name: "description",
         content:
           "AI background removal with edge-perfect cutouts, 24h auto-delete, 10 MB uploads, and a clean API.",
       },
-      { property: "og:title", content: "SnapCut AI Features" },
+      { property: "og:title", content: "Fixi AI Features" },
       {
         property: "og:description",
-        content: "Everything SnapCut AI can do for your images and your workflow.",
+        content: "Everything Fixi AI can do for your images and your workflow.",
       },
     ],
   }),
