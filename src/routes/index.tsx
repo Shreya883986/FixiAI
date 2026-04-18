@@ -62,21 +62,15 @@ function HomePage() {
               cutout in seconds. No skill required.
             </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button asChild variant="hero" size="xl">
-                <Link to="/register">
-                  Try it free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="glow" size="xl">
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <HeroUpload />
+              <Button asChild variant="glow" size="lg">
                 <Link to="/pricing">See pricing</Link>
               </Button>
+              <p className="text-xs text-muted-foreground">
+                No signup required • Try 1 image free
+              </p>
             </div>
-
-            <p className="mt-6 text-xs text-muted-foreground">
-              5 free images per day · No credit card required
-            </p>
           </div>
 
           {/* Visual demo card */}
