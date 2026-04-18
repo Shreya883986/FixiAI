@@ -4,8 +4,8 @@ import { MarketingShell } from "@/components/marketing-shell";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — SnapCut AI" },
-      { name: "description", content: "SnapCut AI terms of service." },
+      { title: "Terms of Service — Fixi AI" },
+      { name: "description", content: "Fixi AI terms of service." },
     ],
   }),
   component: TermsPage,
@@ -21,7 +21,7 @@ function TermsPage() {
         <div className="mt-10 space-y-6 text-muted-foreground">
           <Block title="Acceptable use">
             <p>
-              Don't upload images you don't own or have rights to. Don't use SnapCut AI for illegal
+              Don't upload images you don't own or have rights to. Don't use Fixi AI for illegal
               content, including CSAM, non-consensual imagery, or content that infringes third-party
               rights. We will terminate accounts that violate this.
             </p>

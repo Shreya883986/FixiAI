@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
-    meta: [{ title: "Set new password — SnapCut AI" }],
+    meta: [{ title: "Set new password — Fixi AI" }],
   }),
   component: ResetPasswordPage,
 });

@@ -4,13 +4,13 @@ import { MarketingShell } from "@/components/marketing-shell";
 export const Route = createFileRoute("/api-docs")({
   head: () => ({
     meta: [
-      { title: "API Docs — SnapCut AI" },
+      { title: "API Docs — Fixi AI" },
       {
         name: "description",
         content:
           "REST API for AI background removal. Simple endpoint, API keys, rate limited, transparent PNG response.",
       },
-      { property: "og:title", content: "SnapCut AI — API Documentation" },
+      { property: "og:title", content: "Fixi AI — API Documentation" },
       {
         property: "og:description",
         content: "Drop background removal into any workflow with a single HTTP request.",
@@ -33,7 +33,7 @@ function ApiDocsPage() {
 
         <div className="mt-10 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
           <strong>Beta:</strong> The public B2B API is launching soon. Reach out at{" "}
-          <a href="mailto:hi@snapcut.ai" className="underline">hi@snapcut.ai</a> to join the waitlist.
+          <a href="mailto:hi@fixi.ai" className="underline">hi@fixi.ai</a> to join the waitlist.
         </div>
 
         <Section title="Authentication">
@@ -46,7 +46,7 @@ function ApiDocsPage() {
 
         <Section title="Remove background">
           <p>POST a publicly reachable image URL or upload a base64 image.</p>
-          <Code>{`curl https://api.snapcut.ai/v1/cutout \\
+          <Code>{`curl https://api.fixi.ai/v1/cutout \\
   -H "Authorization: Bearer sk_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -56,7 +56,7 @@ function ApiDocsPage() {
           <p className="mt-6 font-semibold text-foreground">Response</p>
           <Code>{`{
   "id": "cut_a1b2c3d4",
-  "result_url": "https://cdn.snapcut.ai/results/cut_a1b2c3d4.png",
+  "result_url": "https://cdn.fixi.ai/results/cut_a1b2c3d4.png",
   "expires_at": "2026-04-18T22:00:00Z",
   "credits_remaining": 199
 }`}</Code>

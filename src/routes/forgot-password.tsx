@@ -14,8 +14,8 @@ import { Loader2 } from "lucide-react";
 export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
-      { title: "Reset password — SnapCut AI" },
-      { name: "description", content: "Reset your SnapCut AI password." },
+      { title: "Reset password — Fixi AI" },
+      { name: "description", content: "Reset your Fixi AI password." },
     ],
   }),
   component: ForgotPasswordPage,

@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/billing")({
   head: () => ({
     meta: [
-      { title: "Billing — SnapCut AI" },
+      { title: "Billing — Fixi AI" },
       { name: "robots", content: "noindex" },
     ],
   }),

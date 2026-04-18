@@ -4,8 +4,8 @@ import { MarketingShell } from "@/components/marketing-shell";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — SnapCut AI" },
-      { name: "description", content: "How SnapCut AI handles your data." },
+      { title: "Privacy Policy — Fixi AI" },
+      { name: "description", content: "How Fixi AI handles your data." },
     ],
   }),
   component: PrivacyPage,
@@ -42,7 +42,7 @@ function PrivacyPage() {
           <Block title="Your rights">
             <p>
               You can delete your account and all associated data at any time from the dashboard.
-              Email <a href="mailto:hi@snapcut.ai" className="text-primary">hi@snapcut.ai</a> with
+              Email <a href="mailto:hi@fixi.ai" className="text-primary">hi@fixi.ai</a> with
               questions.
             </p>
           </Block>

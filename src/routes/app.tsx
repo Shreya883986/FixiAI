@@ -23,7 +23,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/app")({
   head: () => ({
     meta: [
-      { title: "Dashboard — SnapCut AI" },
+      { title: "Dashboard — Fixi AI" },
       { name: "robots", content: "noindex" },
     ],
   }),

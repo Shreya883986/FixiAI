@@ -2,18 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Zap, Shield, ImageIcon, Wand2, Download } from "lucide-react";
-import logoSrc from "@/assets/snapcut-logo.png";
+import logoSrc from "@/assets/fixi-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SnapCut AI — Remove Image Backgrounds Instantly with AI" },
+      { title: "Fixi AI — Remove Image Backgrounds Instantly with AI" },
       {
         name: "description",
         content:
           "Pixel-perfect AI background removal in under 5 seconds. Free to start. JPG, PNG, WEBP up to 10 MB.",
       },
-      { property: "og:title", content: "SnapCut AI — Remove Backgrounds Instantly" },
+      { property: "og:title", content: "Fixi AI — Remove Backgrounds Instantly" },
       {
         property: "og:description",
         content: "AI background remover. One click. Pixel-perfect cutouts.",
@@ -144,7 +144,7 @@ function HomePage() {
             <FeatureCard
               icon={<Sparkles className="h-6 w-6" />}
               title="API access"
-              desc="Drop SnapCut into your workflow. REST API with simple per-call billing. (Coming soon)"
+              desc="Drop Fixi into your workflow. REST API with simple per-call billing. (Coming soon)"
             />
           </div>
         </div>
