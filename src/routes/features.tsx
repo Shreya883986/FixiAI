@@ -60,8 +60,7 @@ function FeaturesPage() {
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
-            Everything you need to{" "}
-            <span className="text-gradient">cut clean</span>.
+            Everything you need to <span className="text-gradient">cut clean</span>.
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
             A focused tool that does one thing exceptionally well.

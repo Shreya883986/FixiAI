@@ -84,7 +84,9 @@ function LoginPage() {
                 className="mt-1.5"
               />
               {form.formState.errors.email && (
-                <p className="mt-1 text-xs text-destructive">{form.formState.errors.email.message}</p>
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.email.message}
+                </p>
               )}
             </div>
 

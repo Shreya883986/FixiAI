@@ -16,7 +16,10 @@ export const Route = createFileRoute("/register")({
   head: () => ({
     meta: [
       { title: "Create account — Fixi AI" },
-      { name: "description", content: "Create your free Fixi AI account. 5 images per day, no card required." },
+      {
+        name: "description",
+        content: "Create your free Fixi AI account. 5 images per day, no card required.",
+      },
     ],
   }),
   component: RegisterPage,
@@ -103,7 +106,9 @@ function RegisterPage() {
                 className="mt-1.5"
               />
               {form.formState.errors.email && (
-                <p className="mt-1 text-xs text-destructive">{form.formState.errors.email.message}</p>
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.email.message}
+                </p>
               )}
             </div>
 

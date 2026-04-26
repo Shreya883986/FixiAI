@@ -33,7 +33,10 @@ function ApiDocsPage() {
 
         <div className="mt-10 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
           <strong>Beta:</strong> The public B2B API is launching soon. Reach out at{" "}
-          <a href="mailto:hi@fixi.ai" className="underline">hi@fixi.ai</a> to join the waitlist.
+          <a href="mailto:hi@fixi.ai" className="underline">
+            hi@fixi.ai
+          </a>{" "}
+          to join the waitlist.
         </div>
 
         <Section title="Authentication">

@@ -9,23 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { validateImageFile } from "@/lib/storage";
 import { removeBackground } from "@/server/remove-background";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Upload,
-  Loader2,
-  Download,
-  Trash2,
-  ImageIcon,
-  Sparkles,
-  AlertCircle,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Upload, Loader2, Download, Trash2, ImageIcon, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app")({
   head: () => ({
-    meta: [
-      { title: "Dashboard — Fixi AI" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Dashboard — Fixi AI" }, { name: "robots", content: "noindex" }],
   }),
   component: AppPage,
 });
@@ -76,11 +66,7 @@ function Workspace({ userId }: { userId: string }) {
   const { data: profile } = useQuery({
     queryKey: ["profile", userId],
     queryFn: async (): Promise<Profile | null> => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
       if (error) throw error;
       return data as Profile;
     },
@@ -125,9 +111,7 @@ function Workspace({ userId }: { userId: string }) {
             <StatCard
               label="Credits"
               value={
-                profile?.plan === "pro"
-                  ? "∞"
-                  : profile?.credits_remaining?.toString() ?? "—"
+                profile?.plan === "pro" ? "∞" : (profile?.credits_remaining?.toString() ?? "—")
               }
               hint={profile?.plan === "pro" ? "No daily limit" : "Resets every 24h"}
             />
@@ -141,16 +125,18 @@ function Workspace({ userId }: { userId: string }) {
           </div>
 
           {/* Upload zone */}
-          <UploadZone userId={userId} onUploaded={refreshAll} profile={profile} />
+          <UploadZone
+            userId={userId}
+            onUploaded={refreshAll}
+            noCredits={!!profile && profile.plan !== "pro" && profile.credits_remaining <= 0}
+          />
 
           {/* History */}
           <div className="mt-12">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-semibold">Recent cutouts</h2>
               {uploads.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Auto-deleted after 24 hours
-                </p>
+                <p className="text-xs text-muted-foreground">Auto-deleted after 24 hours</p>
               )}
             </div>
 
@@ -201,94 +187,139 @@ function StatCard({
 
 function UploadZone({
   userId,
+  noCredits,
   onUploaded,
-  profile,
 }: {
   userId: string;
+  noCredits: boolean;
   onUploaded: () => void;
-  profile: Profile | null | undefined;
 }) {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const noCredits = profile && profile.plan !== "pro" && profile.credits_remaining <= 0;
-
-  async function handleFile(file: File) {
-    const err = validateImageFile(file);
-    if (err) {
-      toast.error(err);
-      return;
-    }
-    if (noCredits) {
-      toast.error("You're out of credits today. Upgrade to Pro for unlimited.");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      // 1. Upload original to storage (per-user folder)
-      const ext = file.name.split(".").pop() || "png";
-      const objectId = crypto.randomUUID();
-      const originalPath = `${userId}/originals/${objectId}.${ext}`;
-
-      const { error: upErr } = await supabase.storage
-        .from("snapcut-images")
-        .upload(originalPath, file, { contentType: file.type, upsert: false });
-      if (upErr) throw upErr;
-
-      // 2. Create upload row
-      const { data: row, error: insErr } = await supabase
-        .from("uploads")
-        .insert({
-          user_id: userId,
-          original_path: originalPath,
-          original_filename: file.name,
-          file_size_bytes: file.size,
-          status: "pending",
-        })
-        .select("id")
-        .single();
-      if (insErr || !row) throw insErr ?? new Error("Failed to create record");
-
-      onUploaded();
-      toast.success("Processing your image…");
-
-      // 3. Trigger background removal (server function)
-      try {
-        await removeBackground({ data: { uploadId: row.id } });
-        toast.success("Done! Background removed.");
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Processing failed";
-        toast.error(msg);
+  const handleFile = useCallback(
+    async (file: File) => {
+      const err = validateImageFile(file);
+      if (err) {
+        toast.error(err);
+        return;
       }
-      onUploaded();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Upload failed";
-      toast.error(msg);
-    } finally {
-      setUploading(false);
-    }
-  }
+      if (noCredits) {
+        toast.error("You're out of credits today. Upgrade to Pro for unlimited.");
+        return;
+      }
+
+      setUploading(true);
+      try {
+        // 1. Upload original to storage (per-user folder)
+        const ext = file.name.split(".").pop() || "png";
+        const objectId = crypto.randomUUID();
+        const originalPath = `${userId}/originals/${objectId}.${ext}`;
+
+        const { error: upErr } = await supabase.storage
+          .from("snapcut-images")
+          .upload(originalPath, file, { contentType: file.type, upsert: false });
+        if (upErr) throw upErr;
+
+        // 2. Create upload row
+        const { data: row, error: insErr } = await supabase
+          .from("uploads")
+          .insert({
+            user_id: userId,
+            original_path: originalPath,
+            original_filename: file.name,
+            file_size_bytes: file.size,
+            status: "pending",
+          })
+          .select("id")
+          .single();
+        if (insErr || !row) throw insErr ?? new Error("Failed to create record");
+
+        onUploaded();
+        toast.success("Processing your image…");
+
+        // 3. Trigger background removal (server function)
+        try {
+          await removeBackground({ data: { uploadId: row.id } });
+          toast.success("Done! Background removed.");
+        } catch (e) {
+          console.error("BG removal failed", e);
+          // Error already handled by server fn updating row status to 'failed'
+        }
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Upload failed");
+      } finally {
+        setUploading(false);
+      }
+    },
+    [userId, noCredits, onUploaded],
+  );
+
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      if (uploading || noCredits) return;
+      const item = e.clipboardData?.items[0];
+      if (item?.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          handleFile(file);
+          toast.success("Image pasted!");
+        }
+      }
+    };
+
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [handleFile, uploading, noCredits]);
+
+  const onDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!uploading && !noCredits) setDragActive(true);
+    },
+    [uploading, noCredits],
+  );
+
+  const onDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  }, []);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
+      if (uploading || noCredits) return;
+      const file = e.dataTransfer.files?.[0];
+      if (file) handleFile(file);
+    },
+    [handleFile, uploading, noCredits],
+  );
 
   return (
     <div
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragActive(true);
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      onClick={() => !uploading && !noCredits && inputRef.current?.click()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (!uploading && !noCredits && (e.key === "Enter" || e.key === " ")) {
+          inputRef.current?.click();
+        }
       }}
-      onDragLeave={() => setDragActive(false)}
-      onDrop={(e) => {
-        e.preventDefault();
-        setDragActive(false);
-        const file = e.dataTransfer.files?.[0];
-        if (file) handleFile(file);
-      }}
-      className={`relative overflow-hidden rounded-3xl border-2 border-dashed p-12 text-center transition-all ${
+      className={cn(
+        "relative overflow-hidden rounded-3xl border-2 border-dashed p-12 text-center transition-all cursor-pointer",
         dragActive
-          ? "border-primary bg-primary/5 shadow-glow"
-          : "border-border/60 bg-card/30 hover:border-primary/40"
-      } ${noCredits ? "opacity-60" : ""}`}
+          ? "border-primary bg-primary/5 shadow-glow scale-[1.01]"
+          : "border-border/60 bg-card/30 hover:border-primary/40",
+        (uploading || noCredits) && "opacity-60 cursor-not-allowed",
+      )}
     >
       <div className="absolute inset-0 -z-10 bg-gradient-brand-soft opacity-30" />
 
@@ -304,14 +335,18 @@ function UploadZone({
         {uploading ? "Uploading…" : "Drop an image to remove its background"}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        JPG, PNG, or WEBP · up to 10 MB · processed in seconds
+        JPG, PNG, or WEBP · up to 10 MB ·{" "}
+        <span className="hidden sm:inline">paste (Ctrl+V) · </span>processed in seconds
       </p>
 
       <div className="mt-6">
         <Button
           variant="hero"
           size="lg"
-          onClick={() => inputRef.current?.click()}
+          onClick={(e) => {
+            e.stopPropagation();
+            inputRef.current?.click();
+          }}
           disabled={uploading || !!noCredits}
         >
           <Sparkles className="h-4 w-4" />
@@ -333,7 +368,10 @@ function UploadZone({
       {noCredits && (
         <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-200">
           <AlertCircle className="h-3.5 w-3.5" />
-          Out of credits — <Link to="/pricing" className="underline">upgrade to Pro</Link>
+          Out of credits —{" "}
+          <Link to="/pricing" className="underline">
+            upgrade to Pro
+          </Link>
         </div>
       )}
     </div>
@@ -343,14 +381,14 @@ function UploadZone({
 function UploadCard({ upload, onChanged }: { upload: Upload; onChanged: () => void }) {
   const originalUrl = useMemo(
     () => supabase.storage.from("snapcut-images").getPublicUrl(upload.original_path).data.publicUrl,
-    [upload.original_path]
+    [upload.original_path],
   );
   const resultUrl = useMemo(
     () =>
       upload.result_path
         ? supabase.storage.from("snapcut-images").getPublicUrl(upload.result_path).data.publicUrl
         : null,
-    [upload.result_path]
+    [upload.result_path],
   );
 
   async function handleDelete() {

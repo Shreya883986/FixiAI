@@ -9,10 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/billing")({
   head: () => ({
-    meta: [
-      { title: "Billing — Fixi AI" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Billing — Fixi AI" }, { name: "robots", content: "noindex" }],
   }),
   component: BillingPage,
 });
@@ -52,22 +49,18 @@ function BillingPage() {
       <Navbar />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold">Billing</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your plan and credits.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Manage your plan and credits.</p>
 
         <div className="mt-8 rounded-2xl border border-border/60 bg-card/40 p-6 backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                Current plan
-              </p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Current plan</p>
               <p className="mt-1 text-2xl font-bold capitalize">{profile?.plan ?? "free"}</p>
             </div>
             <div className="text-right">
               <p className="text-xs uppercase tracking-wider text-muted-foreground">Credits</p>
               <p className="mt-1 text-2xl font-bold">
-                {profile?.plan === "pro" ? "∞" : profile?.credits_remaining ?? "—"}
+                {profile?.plan === "pro" ? "∞" : (profile?.credits_remaining ?? "—")}
               </p>
             </div>
           </div>
@@ -93,7 +86,10 @@ function BillingPage() {
           <p className="mt-1 text-amber-200/80">
             To enable real Pro upgrades and credit packs, connect Stripe payments to this project.
             Until then, all accounts run on the Free plan.{" "}
-            <Link to="/pricing" className="underline">View plans</Link>.
+            <Link to="/pricing" className="underline">
+              View plans
+            </Link>
+            .
           </p>
         </div>
       </main>

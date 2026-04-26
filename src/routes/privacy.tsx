@@ -21,8 +21,8 @@ function PrivacyPage() {
         <div className="prose prose-invert mt-10 max-w-none space-y-6 text-muted-foreground">
           <Block title="What we collect">
             <p>
-              Account email, an optional display name, your uploaded images, and processing
-              metadata (file size, timestamps, status). That's it.
+              Account email, an optional display name, your uploaded images, and processing metadata
+              (file size, timestamps, status). That's it.
             </p>
           </Block>
           <Block title="What we do with your images">
@@ -42,8 +42,11 @@ function PrivacyPage() {
           <Block title="Your rights">
             <p>
               You can delete your account and all associated data at any time from the dashboard.
-              Email <a href="mailto:hi@fixi.ai" className="text-primary">hi@fixi.ai</a> with
-              questions.
+              Email{" "}
+              <a href="mailto:hi@fixi.ai" className="text-primary">
+                hi@fixi.ai
+              </a>{" "}
+              with questions.
             </p>
           </Block>
         </div>

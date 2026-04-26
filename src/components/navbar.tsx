@@ -37,6 +37,12 @@ export function Navbar() {
             Pricing
           </Link>
           <Link
+            to="/history"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            History
+          </Link>
+          <Link
             to="/api-docs"
             className="text-sm text-muted-foreground transition-colors hover:text-foreground"
           >

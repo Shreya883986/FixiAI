@@ -129,7 +129,8 @@ function PricingPage() {
         </div>
 
         <p className="mt-12 text-center text-xs text-muted-foreground">
-          All prices in USD. Pro plan billing is enabled once Stripe payments are connected to this project.
+          All prices in USD. Pro plan billing is enabled once Stripe payments are connected to this
+          project.
         </p>
       </section>
     </MarketingShell>

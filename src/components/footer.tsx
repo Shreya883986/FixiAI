@@ -16,25 +16,53 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold">Product</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
-              <li><Link to="/pricing" className="hover:text-foreground">Pricing</Link></li>
-              <li><Link to="/api-docs" className="hover:text-foreground">API</Link></li>
+              <li>
+                <Link to="/features" className="hover:text-foreground">
+                  Features
+                </Link>
+              </li>
+              <li>
+                <Link to="/pricing" className="hover:text-foreground">
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link to="/api-docs" className="hover:text-foreground">
+                  API
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold">Company</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/about" className="hover:text-foreground">About</Link></li>
-              <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
+              <li>
+                <Link to="/about" className="hover:text-foreground">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-foreground">
+                  Contact
+                </Link>
+              </li>
             </ul>
           </div>
 
           <div>
             <h3 className="text-sm font-semibold">Legal</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/privacy" className="hover:text-foreground">Privacy</Link></li>
-              <li><Link to="/terms" className="hover:text-foreground">Terms</Link></li>
+              <li>
+                <Link to="/privacy" className="hover:text-foreground">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-foreground">
+                  Terms
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
