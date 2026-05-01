@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { removeBackground as removeBackgroundLocal } from "@imgly/background-removal-node";
 
 type Input = { uploadId?: string; imageBase64?: string };
 type Context = { userId?: string };
@@ -75,6 +76,23 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
 
     const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL?.trim();
 
+    const runLocalBackgroundRemoval = async (inputDataUrl: string) => {
+      const [header, base64Data] = inputDataUrl.includes(",")
+        ? inputDataUrl.split(",")
+        : ["data:image/png;base64", inputDataUrl];
+      const mime = header.match(/:(.*?);/)?.[1] || "image/png";
+      const inputBuffer = Buffer.from(base64Data, "base64");
+
+      const outputBlob = await removeBackgroundLocal(inputBuffer, {
+        model: "small",
+      });
+      const outputBuffer = Buffer.from(await outputBlob.arrayBuffer());
+      return {
+        resultBuffer: outputBuffer,
+        resultDataUrl: `data:${mime};base64,${outputBuffer.toString("base64")}`,
+      };
+    };
+
     try {
       let resultBase64 = originalDataUrl;
       let resultBuffer: Buffer | null = null;
@@ -94,46 +112,66 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
         const file = new File([buffer], "image.png", { type: mime });
         formData.append("image", file);
 
-        const apiResp = await fetch(N8N_WEBHOOK_URL, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!apiResp.ok) {
-          const errorText = await apiResp.text();
-          throw new Error(`n8n Webhook Error: ${apiResp.status} - ${errorText.slice(0, 100)}`);
+        // In n8n, production webhooks use /webhook/... while editor test runs use /webhook-test/...
+        // If production endpoint is unavailable (404), retry the test endpoint automatically.
+        const webhookCandidates = [N8N_WEBHOOK_URL];
+        if (N8N_WEBHOOK_URL.includes("/webhook/")) {
+          webhookCandidates.push(N8N_WEBHOOK_URL.replace("/webhook/", "/webhook-test/"));
         }
 
-        // Process JSON response to get the URL
-        const jsonResponse = await apiResp.json();
-        const imageUrl = jsonResponse.url;
-
-        if (!imageUrl) {
-          throw new Error(
-            "n8n Webhook returned success but no image URL was found in the response.",
-          );
+        let apiResp: Response | null = null;
+        let lastErrorText = "";
+        for (const webhookUrl of webhookCandidates) {
+          const resp = await fetch(webhookUrl, {
+            method: "POST",
+            body: formData,
+          });
+          if (resp.ok) {
+            apiResp = resp;
+            break;
+          }
+          lastErrorText = await resp.text();
+          if (resp.status !== 404) {
+            throw new Error(`n8n Webhook Error: ${resp.status} - ${lastErrorText.slice(0, 120)}`);
+          }
         }
 
-        // Fetch the image from the Cloudinary URL
-        const imageFetchResp = await fetch(imageUrl);
-        if (!imageFetchResp.ok) {
-          throw new Error(
-            `Failed to fetch processed image from Cloudinary: ${imageFetchResp.statusText}`,
-          );
-        }
+        if (!apiResp) {
+          const localResult = await runLocalBackgroundRemoval(originalDataUrl);
+          resultBuffer = localResult.resultBuffer;
+          resultBase64 = localResult.resultDataUrl;
+        } else {
+          // Process JSON response to get the URL (support common n8n response shapes)
+          const jsonResponse = await apiResp.json();
+          const imageUrl =
+            jsonResponse?.url ??
+            jsonResponse?.imageUrl ??
+            jsonResponse?.data?.url ??
+            jsonResponse?.output?.url;
 
-        const resultBlob = await imageFetchResp.blob();
-        const arrayBuffer = await resultBlob.arrayBuffer();
-        resultBuffer = Buffer.from(arrayBuffer);
-        resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+          if (!imageUrl) {
+            throw new Error(
+              "n8n Webhook returned success but no image URL was found in the response.",
+            );
+          }
+
+          // Fetch the image from the Cloudinary URL
+          const imageFetchResp = await fetch(imageUrl);
+          if (!imageFetchResp.ok) {
+            throw new Error(
+              `Failed to fetch processed image from Cloudinary: ${imageFetchResp.statusText}`,
+            );
+          }
+
+          const resultBlob = await imageFetchResp.blob();
+          const arrayBuffer = await resultBlob.arrayBuffer();
+          resultBuffer = Buffer.from(arrayBuffer);
+          resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+        }
       } else {
-        // Fallback: simulate processing and return original
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        resultBase64 = originalDataUrl;
-        const [header, base64Data] = resultBase64.includes(",")
-          ? resultBase64.split(",")
-          : ["data:image/png;base64", resultBase64];
-        resultBuffer = Buffer.from(base64Data, "base64");
+        const localResult = await runLocalBackgroundRemoval(originalDataUrl);
+        resultBuffer = localResult.resultBuffer;
+        resultBase64 = localResult.resultDataUrl;
       }
 
       if (uploadId && userId && resultBuffer) {

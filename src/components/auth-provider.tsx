@@ -19,12 +19,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // CRITICAL: subscribe BEFORE getSession to avoid missing events
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
-    });
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
       setLoading(false);
     });
+
+    void supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        setSession(data.session);
+      })
+      .catch(() => {
+        setSession(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     return () => sub.subscription.unsubscribe();
   }, []);

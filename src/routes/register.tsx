@@ -29,6 +29,10 @@ const schema = z.object({
   displayName: z.string().trim().min(1, "Required").max(60),
   email: z.string().trim().email("Enter a valid email").max(255),
   password: z.string().min(6, "At least 6 characters").max(100),
+  confirmPassword: z.string().min(6, "At least 6 characters").max(100),
+}).refine((values) => values.password === values.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 function RegisterPage() {
@@ -42,26 +46,38 @@ function RegisterPage() {
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { displayName: "", email: "", password: "" },
+    defaultValues: { displayName: "", email: "", password: "", confirmPassword: "" },
   });
 
   async function onSubmit(values: z.infer<typeof schema>) {
     setSubmitting(true);
-    const { error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/app`,
-        data: { display_name: values.displayName },
-      },
-    });
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/app`,
+          data: { display_name: values.displayName },
+        },
+      });
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      if (data.session) {
+        toast.success("Account created — you're in!");
+        navigate({ to: "/app" });
+        return;
+      }
+
+      toast.success("Account created. Check your email to verify and then sign in.");
+      navigate({ to: "/login" });
+    } catch (error) {
+      console.error("Supabase signup network error", error);
+      toast.error("Network error while connecting to Supabase. Disable ad blockers/VPN and retry.");
+    } finally {
+      setSubmitting(false);
     }
-    toast.success("Account created — you're in!");
-    navigate({ to: "/app" });
   }
 
   async function signInWithGoogle() {
@@ -124,6 +140,22 @@ function RegisterPage() {
               {form.formState.errors.password && (
                 <p className="mt-1 text-xs text-destructive">
                   {form.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                {...form.register("confirmPassword")}
+                className="mt-1.5"
+              />
+              {form.formState.errors.confirmPassword && (
+                <p className="mt-1 text-xs text-destructive">
+                  {form.formState.errors.confirmPassword.message}
                 </p>
               )}
             </div>

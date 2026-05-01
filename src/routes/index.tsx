@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   ArrowRight,
   Sparkles,
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -429,16 +431,51 @@ function HomePage() {
               Free for 5 images per day. Pro is unlimited.
             </p>
             <div className="mt-8">
-              <Button asChild variant="hero" size="xl">
-                <Link to="/register">
-                  Get started free
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
+              <Button variant="hero" size="xl" onClick={() => setIsPricingOpen(true)}>
+                Get started free
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </div>
       </section>
+
+      <Dialog open={isPricingOpen} onOpenChange={setIsPricingOpen}>
+        <DialogContent className="max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Choose your plan</DialogTitle>
+            <DialogDescription>
+              Pricing preview. Payment and upgrades are temporarily disabled.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
+              <h3 className="text-lg font-semibold">Free</h3>
+              <p className="mt-2 text-3xl font-bold">$0</p>
+              <p className="mt-1 text-sm text-muted-foreground">5 images per day</p>
+              <Button variant="outline" className="mt-4 w-full" disabled>
+                Start free
+              </Button>
+            </div>
+            <div className="rounded-2xl border border-primary/50 bg-card/60 p-5 shadow-glow-sm">
+              <h3 className="text-lg font-semibold">Pro</h3>
+              <p className="mt-2 text-3xl font-bold">$12</p>
+              <p className="mt-1 text-sm text-muted-foreground">Unlimited images</p>
+              <Button variant="hero" className="mt-4 w-full" disabled>
+                Upgrade to Pro
+              </Button>
+            </div>
+            <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
+              <h3 className="text-lg font-semibold">Pack</h3>
+              <p className="mt-2 text-3xl font-bold">$19</p>
+              <p className="mt-1 text-sm text-muted-foreground">One-time 200 credits</p>
+              <Button variant="outline" className="mt-4 w-full" disabled>
+                Buy a pack
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </MarketingShell>
   );
 }

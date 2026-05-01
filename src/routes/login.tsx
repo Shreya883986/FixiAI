@@ -44,14 +44,20 @@ function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof schema>) {
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword(values);
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const { error } = await supabase.auth.signInWithPassword(values);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success("Welcome back");
+      navigate({ to: "/app" });
+    } catch (error) {
+      console.error("Supabase login network error", error);
+      toast.error("Network error while connecting to Supabase. Disable ad blockers/VPN and retry.");
+    } finally {
+      setSubmitting(false);
     }
-    toast.success("Welcome back");
-    navigate({ to: "/app" });
   }
 
   async function signInWithGoogle() {

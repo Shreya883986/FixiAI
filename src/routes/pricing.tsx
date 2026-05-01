@@ -43,6 +43,7 @@ const tiers = [
     desc: "For creators, sellers, and small teams.",
     cta: "Upgrade to Pro",
     href: "/billing",
+    disabled: true,
     variant: "hero" as const,
     featured: true,
     features: [
@@ -60,6 +61,7 @@ const tiers = [
     desc: "Top-up that never expires. Pay as you go.",
     cta: "Buy a pack",
     href: "/billing",
+    disabled: true,
     variant: "glow" as const,
     features: [
       "200 image credits",
@@ -112,9 +114,15 @@ function PricingPage() {
               </div>
               <p className="mt-3 text-sm text-muted-foreground">{tier.desc}</p>
 
-              <Button asChild variant={tier.variant} size="lg" className="mt-6 w-full">
-                <Link to={tier.href}>{tier.cta}</Link>
-              </Button>
+              {tier.disabled ? (
+                <Button variant={tier.variant} size="lg" className="mt-6 w-full" disabled>
+                  {tier.cta}
+                </Button>
+              ) : (
+                <Button asChild variant={tier.variant} size="lg" className="mt-6 w-full">
+                  <Link to={tier.href}>{tier.cta}</Link>
+                </Button>
+              )}
 
               <ul className="mt-8 space-y-3">
                 {tier.features.map((f) => (
