@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { removeBackground as removeBackgroundLocal } from "@imgly/background-removal-node";
 
 type Input = { uploadId?: string; imageBase64?: string };
 type Context = { userId?: string };
@@ -76,23 +75,6 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
 
     const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL?.trim();
 
-    const runLocalBackgroundRemoval = async (inputDataUrl: string) => {
-      const [header, base64Data] = inputDataUrl.includes(",")
-        ? inputDataUrl.split(",")
-        : ["data:image/png;base64", inputDataUrl];
-      const mime = header.match(/:(.*?);/)?.[1] || "image/png";
-      const inputBuffer = Buffer.from(base64Data, "base64");
-
-      const outputBlob = await removeBackgroundLocal(inputBuffer, {
-        model: "small",
-      });
-      const outputBuffer = Buffer.from(await outputBlob.arrayBuffer());
-      return {
-        resultBuffer: outputBuffer,
-        resultDataUrl: `data:${mime};base64,${outputBuffer.toString("base64")}`,
-      };
-    };
-
     try {
       let resultBase64 = originalDataUrl;
       let resultBuffer: Buffer | null = null;
@@ -137,9 +119,9 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
         }
 
         if (!apiResp) {
-          const localResult = await runLocalBackgroundRemoval(originalDataUrl);
-          resultBuffer = localResult.resultBuffer;
-          resultBase64 = localResult.resultDataUrl;
+          throw new Error(
+            "Background removal service is unavailable. Please verify N8N_WEBHOOK_URL and webhook status.",
+          );
         } else {
           // Process JSON response to get the URL (support common n8n response shapes)
           const jsonResponse = await apiResp.json();
@@ -169,9 +151,7 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
           resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
         }
       } else {
-        const localResult = await runLocalBackgroundRemoval(originalDataUrl);
-        resultBuffer = localResult.resultBuffer;
-        resultBase64 = localResult.resultDataUrl;
+        throw new Error("N8N_WEBHOOK_URL is not configured.");
       }
 
       if (uploadId && userId && resultBuffer) {
