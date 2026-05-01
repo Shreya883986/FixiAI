@@ -14,8 +14,7 @@ export function LogoMark({ size = 40 }: { size?: number }) {
         className="rounded-lg"
       />
       <span className="text-xl font-bold tracking-tight">
-        Snap<span className="text-gradient">Cut</span>
-        <span className="ml-1 text-xs font-medium text-muted-foreground align-top">AI</span>
+        Fixi<span className="text-gradient">Ai</span>
       </span>
     </div>
   );
