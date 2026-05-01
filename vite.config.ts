@@ -11,4 +11,10 @@ export default defineConfig({
   // Vercel deployment path for TanStack Start SSR
   cloudflare: false,
   plugins: [nitro()],
+  vite: {
+    optimizeDeps: {
+      // Prevent Vite dev optimizer from trying to bundle native server-only binaries.
+      exclude: ["@imgly/background-removal-node", "onnxruntime-node", "sharp"],
+    },
+  },
 });
