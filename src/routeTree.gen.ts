@@ -9,15 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WebsiteLinkRouteImport } from './routes/website-link'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ShippingDeliveryRouteImport } from './routes/shipping-delivery'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
+import { Route as RefundCancellationRouteImport } from './routes/refund-cancellation'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AppRouteImport } from './routes/app'
@@ -25,9 +29,19 @@ import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WebsiteLinkRoute = WebsiteLinkRouteImport.update({
+  id: '/website-link',
+  path: '/website-link',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShippingDeliveryRoute = ShippingDeliveryRouteImport.update({
+  id: '/shipping-delivery',
+  path: '/shipping-delivery',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -38,6 +52,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RefundCancellationRoute = RefundCancellationRouteImport.update({
+  id: '/refund-cancellation',
+  path: '/refund-cancellation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -68,6 +87,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -108,15 +132,19 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRoute
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-cancellation': typeof RefundCancellationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/shipping-delivery': typeof ShippingDeliveryRoute
   '/terms': typeof TermsRoute
+  '/website-link': typeof WebsiteLinkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -125,15 +153,19 @@ export interface FileRoutesByTo {
   '/app': typeof AppRoute
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-cancellation': typeof RefundCancellationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/shipping-delivery': typeof ShippingDeliveryRoute
   '/terms': typeof TermsRoute
+  '/website-link': typeof WebsiteLinkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,15 +175,19 @@ export interface FileRoutesById {
   '/app': typeof AppRoute
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/refund-cancellation': typeof RefundCancellationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/shipping-delivery': typeof ShippingDeliveryRoute
   '/terms': typeof TermsRoute
+  '/website-link': typeof WebsiteLinkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,15 +198,19 @@ export interface FileRouteTypes {
     | '/app'
     | '/billing'
     | '/contact'
+    | '/cookies'
     | '/features'
     | '/forgot-password'
     | '/history'
     | '/login'
     | '/pricing'
     | '/privacy'
+    | '/refund-cancellation'
     | '/register'
     | '/reset-password'
+    | '/shipping-delivery'
     | '/terms'
+    | '/website-link'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,15 +219,19 @@ export interface FileRouteTypes {
     | '/app'
     | '/billing'
     | '/contact'
+    | '/cookies'
     | '/features'
     | '/forgot-password'
     | '/history'
     | '/login'
     | '/pricing'
     | '/privacy'
+    | '/refund-cancellation'
     | '/register'
     | '/reset-password'
+    | '/shipping-delivery'
     | '/terms'
+    | '/website-link'
   id:
     | '__root__'
     | '/'
@@ -196,15 +240,19 @@ export interface FileRouteTypes {
     | '/app'
     | '/billing'
     | '/contact'
+    | '/cookies'
     | '/features'
     | '/forgot-password'
     | '/history'
     | '/login'
     | '/pricing'
     | '/privacy'
+    | '/refund-cancellation'
     | '/register'
     | '/reset-password'
+    | '/shipping-delivery'
     | '/terms'
+    | '/website-link'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -214,24 +262,42 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRoute
   BillingRoute: typeof BillingRoute
   ContactRoute: typeof ContactRoute
+  CookiesRoute: typeof CookiesRoute
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  RefundCancellationRoute: typeof RefundCancellationRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ShippingDeliveryRoute: typeof ShippingDeliveryRoute
   TermsRoute: typeof TermsRoute
+  WebsiteLinkRoute: typeof WebsiteLinkRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/website-link': {
+      id: '/website-link'
+      path: '/website-link'
+      fullPath: '/website-link'
+      preLoaderRoute: typeof WebsiteLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shipping-delivery': {
+      id: '/shipping-delivery'
+      path: '/shipping-delivery'
+      fullPath: '/shipping-delivery'
+      preLoaderRoute: typeof ShippingDeliveryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -246,6 +312,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/refund-cancellation': {
+      id: '/refund-cancellation'
+      path: '/refund-cancellation'
+      fullPath: '/refund-cancellation'
+      preLoaderRoute: typeof RefundCancellationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -288,6 +361,13 @@ declare module '@tanstack/react-router' {
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -342,15 +422,19 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRoute,
   BillingRoute: BillingRoute,
   ContactRoute: ContactRoute,
+  CookiesRoute: CookiesRoute,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  RefundCancellationRoute: RefundCancellationRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ShippingDeliveryRoute: ShippingDeliveryRoute,
   TermsRoute: TermsRoute,
+  WebsiteLinkRoute: WebsiteLinkRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

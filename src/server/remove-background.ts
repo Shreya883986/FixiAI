@@ -1,17 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-type Input = { uploadId?: string; imageBase64?: string };
-type Context = { userId?: string };
-
 /**
  * Remove background from an image.
  * Current implementation: Sends binary image to n8n webhook and handles JSON response with image URL.
  */
 export const removeBackground = createServerFn({ method: "POST" }).handler(
-  async ({ data, context }) => {
-    const userId = (context as Context | undefined)?.userId;
-    const { uploadId, imageBase64 } = data as Input;
+  async ({ data }: { data?: any }) => {
+    const input = data || {};
+    const { uploadId, imageBase64 } = input;
+    let userId: string | undefined = undefined;
 
     let originalDataUrl = imageBase64;
 
@@ -29,7 +27,7 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
       if (upload.status === "done" && upload.result_path) {
         return { uploadId, resultPath: upload.result_path, status: "done" as const };
       }
-      // Check credits
+
       const { data: profile, error: pErr } = await supabaseAdmin
         .from("profiles")
         .select("credits_remaining, plan, credits_reset_at")
@@ -120,84 +118,102 @@ export const removeBackground = createServerFn({ method: "POST" }).handler(
 
         if (!apiResp) {
           throw new Error(
-            "Background removal service is unavailable. Please verify N8N_WEBHOOK_URL and webhook status.",
+            `n8n webhook not responding. Check your webhook URL and n8n status. Last error: ${lastErrorText.slice(0, 100)}`,
           );
-        } else {
-          // Process JSON response to get the URL (support common n8n response shapes)
-          const jsonResponse = await apiResp.json();
-          const imageUrl =
-            jsonResponse?.url ??
-            jsonResponse?.imageUrl ??
-            jsonResponse?.data?.url ??
-            jsonResponse?.output?.url;
-
-          if (!imageUrl) {
-            throw new Error(
-              "n8n Webhook returned success but no image URL was found in the response.",
-            );
-          }
-
-          // Fetch the image from the Cloudinary URL
-          const imageFetchResp = await fetch(imageUrl);
-          if (!imageFetchResp.ok) {
-            throw new Error(
-              `Failed to fetch processed image from Cloudinary: ${imageFetchResp.statusText}`,
-            );
-          }
-
-          const resultBlob = await imageFetchResp.blob();
-          const arrayBuffer = await resultBlob.arrayBuffer();
-          resultBuffer = Buffer.from(arrayBuffer);
-          resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
         }
-      } else {
-        throw new Error("N8N_WEBHOOK_URL is not configured.");
+
+        const responseData = await apiResp.json();
+
+        const maybeImageUrl =
+          responseData?.image_url ||
+          responseData?.url ||
+          responseData?.body?.image_url ||
+          responseData?.body?.url ||
+          responseData?.data?.image_url ||
+          responseData?.data?.url ||
+          responseData?.[0]?.image_url ||
+          responseData?.[0]?.url ||
+          responseData?.[0]?.json?.image_url ||
+          responseData?.[0]?.json?.url ||
+          responseData?.[0]?.body?.image_url ||
+          responseData?.[0]?.body?.url ||
+          responseData?.body?.data?.image_url ||
+          responseData?.body?.data?.url ||
+          responseData?.[0]?.body?.data?.image_url ||
+          responseData?.[0]?.body?.data?.url;
+
+        const maybeBinary =
+          responseData?.binary?.image ||
+          responseData?.[0]?.binary?.image ||
+          responseData?.[0]?.binary?.data;
+
+        if (maybeBinary?.data) {
+          const mimeType = maybeBinary.mimeType || maybeBinary.mime || "image/png";
+          resultBuffer = Buffer.from(maybeBinary.data, "base64");
+          resultBase64 = `data:${mimeType};base64,${resultBuffer.toString("base64")}`;
+        } else if (maybeImageUrl) {
+          const imgResp = await fetch(maybeImageUrl);
+          if (!imgResp.ok) throw new Error("Failed to fetch processed image from n8n");
+
+          resultBuffer = Buffer.from(await imgResp.arrayBuffer());
+          resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+        } else {
+          throw new Error(
+            `n8n webhook returned unexpected payload. Expected image_url or binary image data. Response: ${JSON.stringify(
+              Array.isArray(responseData) ? responseData.slice(0, 2) : responseData,
+            ).slice(0, 300)}`,
+          );
+        }
       }
 
-      if (uploadId && userId && resultBuffer) {
-        // Upload result to Supabase
-        const resultPath = `${userId}/results/${uploadId}.png`;
-        const { error: upErr2 } = await supabaseAdmin.storage
+      if (uploadId && userId) {
+        // Store result in Supabase
+        const resultFileName = `result_${Date.now()}.png`;
+        const { error: uploadErr } = await supabaseAdmin.storage
           .from("snapcut-images")
-          .upload(resultPath, resultBuffer, {
-            contentType: "image/png",
-            upsert: true,
-          });
-        if (upErr2) throw upErr2;
+          .upload(`${userId}/${resultFileName}`, resultBuffer || Buffer.from(resultBase64));
 
-        // Update upload row
+        if (uploadErr) throw new Error(`Failed to upload result: ${uploadErr.message}`);
+
+        // Update upload record
         await supabaseAdmin
           .from("uploads")
-          .update({ status: "done", result_path: resultPath })
+          .update({
+            status: "done",
+            result_path: `${userId}/${resultFileName}`,
+            error_message: null,
+          })
           .eq("id", uploadId);
 
-        // Deduct credit
+        // Deduct credits if not pro
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("credits_remaining, plan")
+          .select("plan, credits_remaining")
           .eq("id", userId)
           .single();
-        if (profile && profile.plan !== "pro") {
+
+        if (profile && profile.plan !== "pro" && profile.credits_remaining > 0) {
           await supabaseAdmin
             .from("profiles")
-            .update({ credits_remaining: (profile.credits_remaining || 1) - 1 })
+            .update({ credits_remaining: profile.credits_remaining - 1 })
             .eq("id", userId);
         }
 
-        return { uploadId, resultPath, status: "done" as const };
+        return { uploadId, resultPath: `${userId}/${resultFileName}`, status: "done" as const };
       }
 
-      // Guest flow: return base64
-      return { resultDataUrl: resultBase64, status: "done" as const };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Unknown error";
+      return { resultDataUrl: resultBase64, status: "success" as const };
+    } catch (error) {
       if (uploadId) {
         await supabaseAdmin
           .from("uploads")
-          .update({ status: "failed", error_message: msg })
+          .update({
+            status: "failed",
+            error_message: error instanceof Error ? error.message : "Unknown error",
+          })
           .eq("id", uploadId);
       }
-      throw err;
+
+      throw error;
     }
-  },
-);
+  });

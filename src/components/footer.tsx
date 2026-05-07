@@ -47,6 +47,11 @@ export function Footer() {
                   Contact
                 </Link>
               </li>
+              <li>
+                <Link to="/website-link" className="hover:text-foreground">
+                  Website Link
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -61,6 +66,21 @@ export function Footer() {
               <li>
                 <Link to="/terms" className="hover:text-foreground">
                   Terms
+                </Link>
+              </li>
+              <li>
+                <Link to="/cookies" className="hover:text-foreground">
+                  Cookies
+                </Link>
+              </li>
+              <li>
+                <Link to="/refund-cancellation" className="hover:text-foreground">
+                  Refund & Cancellation
+                </Link>
+              </li>
+              <li>
+                <Link to="/shipping-delivery" className="hover:text-foreground">
+                  Shipping & Delivery
                 </Link>
               </li>
             </ul>

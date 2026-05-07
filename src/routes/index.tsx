@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useRef, useState, useEffect } from "react";
 import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { validateImageFile } from "@/lib/storage";
 import { removeBackground } from "@/server/remove-background";
+import { createRazorpayOrder } from "@/server/razorpay";
 import logoSrc from "@/assets/fixi-logo.png";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,8 +51,10 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -97,6 +100,93 @@ function HomePage() {
     setHistory([]);
     localStorage.removeItem("snapcut_history");
   }, []);
+
+  const loadRazorpayScript = useCallback(async () => {
+    if (typeof window === "undefined") return false;
+    if ((window as any).Razorpay) return true;
+
+    return new Promise<boolean>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => reject(new Error("Unable to load Razorpay checkout script."));
+      document.body.appendChild(script);
+    });
+  }, []);
+
+  const handleCheckout = useCallback(
+    async (planName: string, amount: number, currency: string) => {
+      setIsCheckoutLoading(true);
+
+      try {
+        const scriptLoaded = await loadRazorpayScript();
+        if (!scriptLoaded) {
+          throw new Error("Unable to load Razorpay checkout. Try again later.");
+        }
+
+        const orderData = {
+          amount,
+          currency,
+          receipt: `fixi-${planName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
+          notes: {
+            plan: planName,
+            business_name: "Fixi AI",
+          },
+        };
+
+        const orderResponse = await createRazorpayOrder({ data: orderData });
+
+        const Razorpay = (window as any).Razorpay;
+        if (!Razorpay) {
+          throw new Error("Razorpay checkout is not available.");
+        }
+
+        const checkout = new Razorpay({
+          key: orderResponse.keyId,
+          amount: orderResponse.amount,
+          currency: orderResponse.currency,
+          order_id: orderResponse.orderId,
+          name: "Fixi AI",
+          description: `${planName} purchase`,
+          theme: { color: "#48B5FF" },
+          notes: {
+            plan: planName,
+            website: "https://fixi.ai",
+          },
+          handler: (response: any) => {
+            toast.success("Payment completed successfully.");
+            setIsCheckoutLoading(false);
+            setIsPricingOpen(false);
+          },
+          modal: {
+            ondismiss: () => {
+              setIsCheckoutLoading(false);
+            },
+          },
+        });
+
+        checkout.open();
+      } catch (error) {
+        console.error(error);
+        toast.error(error instanceof Error ? error.message : "Payment failed. Please try again.");
+        setIsCheckoutLoading(false);
+      }
+    },
+    [loadRazorpayScript],
+  );
+
+  const handleStartFree = useCallback(() => {
+    navigate({ to: "/register" });
+  }, [navigate]);
+
+  const handleUpgradePro = useCallback(() => {
+    handleCheckout("Pro", 49900, "INR");
+  }, [handleCheckout]);
+
+  const handleBuyPack = useCallback(() => {
+    handleCheckout("Pack", 99900, "INR");
+  }, [handleCheckout]);
 
   const handleFile = useCallback(
     async (file: File) => {
@@ -428,7 +518,7 @@ function HomePage() {
               Stop tracing. Start <span className="text-gradient">snapping</span>.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Free for 5 images per day. Pro is unlimited.
+              Free for 5 images per day. Pro is unlimited and priced in INR.
             </p>
             <div className="mt-8">
               <Button variant="hero" size="xl" onClick={() => setIsPricingOpen(true)}>
@@ -445,32 +535,46 @@ function HomePage() {
           <DialogHeader>
             <DialogTitle>Choose your plan</DialogTitle>
             <DialogDescription>
-              Pricing preview. Payment and upgrades are temporarily disabled.
+              Select a plan to get started with background removal.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
               <h3 className="text-lg font-semibold">Free</h3>
-              <p className="mt-2 text-3xl font-bold">$0</p>
-              <p className="mt-1 text-sm text-muted-foreground">5 images per day</p>
-              <Button variant="outline" className="mt-4 w-full" disabled>
+              <p className="mt-2 text-3xl font-bold">₹0</p>
+              <p className="mt-1 text-sm text-muted-foreground">Forever</p>
+              <Button 
+                variant="outline" 
+                className="mt-4 w-full"
+                onClick={handleStartFree}
+              >
                 Start free
               </Button>
             </div>
             <div className="rounded-2xl border border-primary/50 bg-card/60 p-5 shadow-glow-sm">
               <h3 className="text-lg font-semibold">Pro</h3>
-              <p className="mt-2 text-3xl font-bold">$12</p>
-              <p className="mt-1 text-sm text-muted-foreground">Unlimited images</p>
-              <Button variant="hero" className="mt-4 w-full" disabled>
-                Upgrade to Pro
+              <p className="mt-2 text-3xl font-bold">₹499</p>
+              <p className="mt-1 text-sm text-muted-foreground">Per month</p>
+              <Button 
+                variant="hero" 
+                className="mt-4 w-full"
+                onClick={handleUpgradePro}
+                disabled={isCheckoutLoading}
+              >
+                {isCheckoutLoading ? "Processing..." : "Upgrade to Pro"}
               </Button>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
               <h3 className="text-lg font-semibold">Pack</h3>
-              <p className="mt-2 text-3xl font-bold">$19</p>
-              <p className="mt-1 text-sm text-muted-foreground">One-time 200 credits</p>
-              <Button variant="outline" className="mt-4 w-full" disabled>
-                Buy a pack
+              <p className="mt-2 text-3xl font-bold">₹999</p>
+              <p className="mt-1 text-sm text-muted-foreground">Per month</p>
+              <Button 
+                variant="outline" 
+                className="mt-4 w-full"
+                onClick={handleBuyPack}
+                disabled={isCheckoutLoading}
+              >
+                {isCheckoutLoading ? "Processing..." : "Buy a pack"}
               </Button>
             </div>
           </div>
