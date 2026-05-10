@@ -1,0 +1,241 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "upload your image ",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "your image input",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -768,
+        -240
+      ],
+      "id": "a2c67f38-8ce2-40c2-b5b2-74c50c6cd41d",
+      "name": "On form submission",
+      "webhookId": "7b43665c-7990-464c-856f-d54fee2e3ca5",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/dd9javi1n/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "upload_preset",
+              "value": "n8n direct uploads"
+            },
+            {
+              "name": "folder",
+              "value": "snapcut/uploads"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "output.png"
+            },
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "33e0952b-b056-403e-af94-bf28ec0e4028",
+      "name": "upload image to cloud"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://clipdrop-api.co/remove-background/v1",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "53dcee6256005df389c1efd4760108fa985b62a1f422fa873988e9381beab101694fb6ee0fdc6a960e2a0f3a8fff5ae4"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "image_file",
+              "inputDataFieldName": "image"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "output.png"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -384,
+        -96
+      ],
+      "id": "f66e4dcb-acfa-45f9-9b18-e82a6bfb619a",
+      "name": "Clipdrop API"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "remove-background",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -592,
+        -96
+      ],
+      "id": "94fa02e4-d0fb-4339-b38f-111a4932f24d",
+      "name": "Image Req received fro SnapCut",
+      "webhookId": "7e100a75-254f-4db9-984e-0b912224c08c"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"url\": \"{{ $json.url }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "d16643fc-77aa-4e38-b588-2d55c1c1fc6c",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Image Req received fro SnapCut": [
+      {
+        "json": {
+          "headers": {
+            "host": "shreyagupta1010.app.n8n.cloud",
+            "user-agent": "node",
+            "content-length": "159947",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "*",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "103.44.52.159",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "IN",
+            "cf-ray": "9efea2fbbdc216e3-DEL",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "multipart/form-data; boundary=----formdata-undici-076107291127",
+            "sec-fetch-mode": "cors",
+            "x-forwarded-for": "103.44.52.159, 104.22.60.147",
+            "x-forwarded-host": "shreyagupta1010.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-91-6c5f66d98-cclbp",
+            "x-is-trusted": "yes",
+            "x-real-ip": "103.44.52.159"
+          },
+          "params": {},
+          "query": {},
+          "body": {},
+          "webhookUrl": "https://shreyagupta1010.app.n8n.cloud/webhook/remove-background",
+          "executionMode": "production"
+        },
+        "binary": {
+          "image": {
+            "mimeType": "image/png",
+            "fileType": "image",
+            "fileExtension": "png",
+            "data": "filesystem-v2",
+            "fileName": "image.png",
+            "id": "filesystem-v2:workflows/CyeFxKMLOYtDjr18/executions/28/binary_data/4ec91bc8-63a0-4f6f-95ba-c9fc82e9eea6",
+            "fileSize": "160 kB",
+            "bytes": 159776
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        []
+      ]
+    },
+    "upload image to cloud": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clipdrop API": {
+      "main": [
+        [
+          {
+            "node": "upload image to cloud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Req received fro SnapCut": {
+      "main": [
+        [
+          {
+            "node": "Clipdrop API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2d7bde62-0bd3-487f-8d9f-811d6d7f9e6b",
+  "meta": {
+    "instanceId": "69e4454f4bd9122e3de452f9308fecc2a04a854a169730607cdb7f59e1f57f48"
+  },
+  "id": "CyeFxKMLOYtDjr18",
+  "tags": []
+}
