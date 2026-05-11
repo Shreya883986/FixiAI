@@ -266,47 +266,71 @@ export const removeBackground = createServerFn({ method: "POST" })
           );
         }
 
-        const responseData = await apiResp.json();
+        const contentType = apiResp.headers.get("content-type") ?? "";
 
-        const maybeImageUrl =
-          responseData?.image_url ||
-          responseData?.url ||
-          responseData?.body?.image_url ||
-          responseData?.body?.url ||
-          responseData?.data?.image_url ||
-          responseData?.data?.url ||
-          responseData?.[0]?.image_url ||
-          responseData?.[0]?.url ||
-          responseData?.[0]?.json?.image_url ||
-          responseData?.[0]?.json?.url ||
-          responseData?.[0]?.body?.image_url ||
-          responseData?.[0]?.body?.url ||
-          responseData?.body?.data?.image_url ||
-          responseData?.body?.data?.url ||
-          responseData?.[0]?.body?.data?.image_url ||
-          responseData?.[0]?.body?.data?.url;
-
-        const maybeBinary =
-          responseData?.binary?.image ||
-          responseData?.[0]?.binary?.image ||
-          responseData?.[0]?.binary?.data;
-
-        if (maybeBinary?.data) {
-          const mimeType = maybeBinary.mimeType || maybeBinary.mime || "image/png";
-          resultBuffer = Buffer.from(maybeBinary.data, "base64");
-          resultBase64 = `data:${mimeType};base64,${resultBuffer.toString("base64")}`;
-        } else if (maybeImageUrl) {
-          const imgResp = await fetch(maybeImageUrl);
-          if (!imgResp.ok) throw new Error("Failed to fetch processed image from n8n");
-
-          resultBuffer = Buffer.from(await imgResp.arrayBuffer());
-          resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+        if (contentType.startsWith("image/")) {
+          resultBuffer = Buffer.from(await apiResp.arrayBuffer());
+          resultBase64 = `data:${contentType.split(";")[0]};base64,${resultBuffer.toString("base64")}`;
         } else {
-          throw new Error(
-            `n8n webhook returned unexpected payload. Expected image_url or binary image data. Response: ${JSON.stringify(
-              Array.isArray(responseData) ? responseData.slice(0, 2) : responseData,
-            ).slice(0, 300)}`,
-          );
+          const responseText = await apiResp.text();
+          if (!responseText.trim()) {
+            throw new Error(
+              "n8n webhook returned an empty response. Make sure the workflow ends with a Respond to Webhook node that returns the processed image URL or binary image data.",
+            );
+          }
+
+          let responseData: any;
+          try {
+            responseData = JSON.parse(responseText);
+          } catch {
+            throw new Error(
+              `n8n webhook returned non-JSON response. Expected image_url or binary image data. Response: ${responseText.slice(
+                0,
+                300,
+              )}`,
+            );
+          }
+
+          const maybeImageUrl =
+            responseData?.image_url ||
+            responseData?.url ||
+            responseData?.body?.image_url ||
+            responseData?.body?.url ||
+            responseData?.data?.image_url ||
+            responseData?.data?.url ||
+            responseData?.[0]?.image_url ||
+            responseData?.[0]?.url ||
+            responseData?.[0]?.json?.image_url ||
+            responseData?.[0]?.json?.url ||
+            responseData?.[0]?.body?.image_url ||
+            responseData?.[0]?.body?.url ||
+            responseData?.body?.data?.image_url ||
+            responseData?.body?.data?.url ||
+            responseData?.[0]?.body?.data?.image_url ||
+            responseData?.[0]?.body?.data?.url;
+
+          const maybeBinary =
+            responseData?.binary?.image ||
+            responseData?.[0]?.binary?.image ||
+            responseData?.[0]?.binary?.data;
+
+          if (maybeBinary?.data) {
+            const mimeType = maybeBinary.mimeType || maybeBinary.mime || "image/png";
+            resultBuffer = Buffer.from(maybeBinary.data, "base64");
+            resultBase64 = `data:${mimeType};base64,${resultBuffer.toString("base64")}`;
+          } else if (maybeImageUrl) {
+            const imgResp = await fetch(maybeImageUrl);
+            if (!imgResp.ok) throw new Error("Failed to fetch processed image from n8n");
+
+            resultBuffer = Buffer.from(await imgResp.arrayBuffer());
+            resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+          } else {
+            throw new Error(
+              `n8n webhook returned unexpected payload. Expected image_url or binary image data. Response: ${JSON.stringify(
+                Array.isArray(responseData) ? responseData.slice(0, 2) : responseData,
+              ).slice(0, 300)}`,
+            );
+          }
         }
       }
 
