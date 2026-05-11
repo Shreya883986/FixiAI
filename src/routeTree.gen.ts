@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebsiteLinkRouteImport } from './routes/website-link'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShippingDeliveryRouteImport } from './routes/shipping-delivery'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as RefundCancellationRouteImport } from './routes/refund-cancellation'
@@ -42,6 +43,11 @@ const TermsRoute = TermsRouteImport.update({
 const ShippingDeliveryRoute = ShippingDeliveryRouteImport.update({
   id: '/shipping-delivery',
   path: '/shipping-delivery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/refund-cancellation': typeof RefundCancellationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/shipping-delivery': typeof ShippingDeliveryRoute
   '/terms': typeof TermsRoute
   '/website-link': typeof WebsiteLinkRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/refund-cancellation': typeof RefundCancellationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/shipping-delivery': typeof ShippingDeliveryRoute
   '/terms': typeof TermsRoute
   '/website-link': typeof WebsiteLinkRoute
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/refund-cancellation': typeof RefundCancellationRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/settings': typeof SettingsRoute
   '/shipping-delivery': typeof ShippingDeliveryRoute
   '/terms': typeof TermsRoute
   '/website-link': typeof WebsiteLinkRoute
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/refund-cancellation'
     | '/register'
     | '/reset-password'
+    | '/settings'
     | '/shipping-delivery'
     | '/terms'
     | '/website-link'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/refund-cancellation'
     | '/register'
     | '/reset-password'
+    | '/settings'
     | '/shipping-delivery'
     | '/terms'
     | '/website-link'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/refund-cancellation'
     | '/register'
     | '/reset-password'
+    | '/settings'
     | '/shipping-delivery'
     | '/terms'
     | '/website-link'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   RefundCancellationRoute: typeof RefundCancellationRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SettingsRoute: typeof SettingsRoute
   ShippingDeliveryRoute: typeof ShippingDeliveryRoute
   TermsRoute: typeof TermsRoute
   WebsiteLinkRoute: typeof WebsiteLinkRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/shipping-delivery'
       fullPath: '/shipping-delivery'
       preLoaderRoute: typeof ShippingDeliveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -432,6 +452,7 @@ const rootRouteChildren: RootRouteChildren = {
   RefundCancellationRoute: RefundCancellationRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SettingsRoute: SettingsRoute,
   ShippingDeliveryRoute: ShippingDeliveryRoute,
   TermsRoute: TermsRoute,
   WebsiteLinkRoute: WebsiteLinkRoute,

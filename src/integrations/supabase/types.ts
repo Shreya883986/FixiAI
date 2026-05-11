@@ -82,36 +82,45 @@ export type Database = {
       uploads: {
         Row: {
           created_at: string;
+          completed_at: string | null;
+          download_count: number;
           error_message: string | null;
           expires_at: string;
           file_size_bytes: number | null;
           id: string;
           original_filename: string | null;
           original_path: string;
+          processing_time_ms: number | null;
           result_path: string | null;
           status: string;
           user_id: string;
         };
         Insert: {
+          completed_at?: string | null;
           created_at?: string;
+          download_count?: number;
           error_message?: string | null;
           expires_at?: string;
           file_size_bytes?: number | null;
           id?: string;
           original_filename?: string | null;
           original_path: string;
+          processing_time_ms?: number | null;
           result_path?: string | null;
           status?: string;
           user_id: string;
         };
         Update: {
+          completed_at?: string | null;
           created_at?: string;
+          download_count?: number;
           error_message?: string | null;
           expires_at?: string;
           file_size_bytes?: number | null;
           id?: string;
           original_filename?: string | null;
           original_path?: string;
+          processing_time_ms?: number | null;
           result_path?: string | null;
           status?: string;
           user_id?: string;

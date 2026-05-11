@@ -14,11 +14,14 @@ import {
   UploadCloud,
   Loader2,
   X,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { validateImageFile } from "@/lib/storage";
-import { removeBackground } from "@/server/remove-background";
-import { createRazorpayOrder } from "@/server/razorpay";
+import { createRazorpayOrder } from "@/actions/razorpay";
+import { removeBackground } from "@/actions/remove-background";
+import { useAuth } from "@/components/auth-provider";
+import { supabase } from "@/integrations/supabase/client";
 import logoSrc from "@/assets/fixi-logo.png";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +55,7 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
@@ -154,16 +158,28 @@ function HomePage() {
             plan: planName,
             website: "https://fixi.ai",
           },
-          handler: (response: any) => {
+          handler: async (response: any) => {
+            if (user && planName === "Pro") {
+              await supabase
+                .from("profiles")
+                .update({
+                  plan: "pro",
+                  credits_remaining: 10,
+                  credits_reset_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                })
+                .eq("id", user.id);
+            }
             toast.success("Payment completed successfully.");
             setIsCheckoutLoading(false);
             setIsPricingOpen(false);
           },
           modal: {
+            confirm_close: true,
             ondismiss: () => {
               setIsCheckoutLoading(false);
             },
           },
+          retry: { enabled: true, max_count: 3 },
         });
 
         checkout.open();
@@ -173,7 +189,7 @@ function HomePage() {
         setIsCheckoutLoading(false);
       }
     },
-    [loadRazorpayScript],
+    [loadRazorpayScript, user],
   );
 
   const handleStartFree = useCallback(() => {
@@ -190,6 +206,12 @@ function HomePage() {
 
   const handleFile = useCallback(
     async (file: File) => {
+      if (!user) {
+        toast.error("Please create an account or sign in before removing backgrounds.");
+        navigate({ to: "/register" });
+        return;
+      }
+
       const error = validateImageFile(file);
       if (error) {
         toast.error(error);
@@ -204,12 +226,31 @@ function HomePage() {
         setResultImage(null);
 
         try {
-          const result = await removeBackground({ data: { imageBase64: base64 } });
-          if (result && "resultDataUrl" in result && result.resultDataUrl) {
-            const resultUrl = result.resultDataUrl;
+          const processingStartedAt = Date.now();
+          const { data: sessionData } = await supabase.auth.getSession();
+          const accessToken = sessionData.session?.access_token;
+          if (!accessToken) {
+            throw new Error("Your session expired. Please sign in again.");
+          }
+
+          const result = await removeBackground({
+            data: {
+              imageBase64: base64,
+              userId: user.id,
+              accessToken,
+              originalFilename: file.name,
+              fileSizeBytes: file.size,
+              processingStartedAt,
+            },
+          });
+
+          if (result && "resultPath" in result && result.resultPath) {
+            const resultUrl = supabase.storage
+              .from("snapcut-images")
+              .getPublicUrl(result.resultPath).data.publicUrl;
             setResultImage(resultUrl);
             saveToHistory(base64, resultUrl);
-            toast.success("Background removed!");
+            toast.success("Background removed and saved to history!");
           } else {
             throw new Error("Failed to process image");
           }
@@ -224,7 +265,7 @@ function HomePage() {
       reader.onerror = () => toast.error("Could not read file");
       reader.readAsDataURL(file);
     },
-    [saveToHistory],
+    [navigate, saveToHistory, user],
   );
 
   return (
@@ -377,7 +418,7 @@ function HomePage() {
               <Button asChild variant="glow" size="lg">
                 <Link to="/pricing">See pricing</Link>
               </Button>
-              <p className="text-xs text-muted-foreground">No signup required • Try 1 image free</p>
+              <p className="text-xs text-muted-foreground">Account required • 2 free credits after signup</p>
             </div>
           </div>
 
@@ -518,7 +559,7 @@ function HomePage() {
               Stop tracing. Start <span className="text-gradient">snapping</span>.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Free for 5 images per day. Pro is unlimited and priced in INR.
+              Free users get 2 credits. Pro includes 10 credits for one month.
             </p>
             <div className="mt-8">
               <Button variant="hero" size="xl" onClick={() => setIsPricingOpen(true)}>
@@ -550,6 +591,14 @@ function HomePage() {
               >
                 Start free
               </Button>
+              <PlanFeatures
+                items={[
+                  "2 free credits after signup",
+                  "Standard quality output",
+                  "Basic formats allowed (JPG, PNG)",
+                  "Email support",
+                ]}
+              />
             </div>
             <div className="rounded-2xl border border-primary/50 bg-card/60 p-5 shadow-glow-sm">
               <h3 className="text-lg font-semibold">Pro</h3>
@@ -563,6 +612,14 @@ function HomePage() {
               >
                 {isCheckoutLoading ? "Processing..." : "Upgrade to Pro"}
               </Button>
+              <PlanFeatures
+                items={[
+                  "10 credits for one month",
+                  "HD quality outputs",
+                  "All formats (PNG, WEBP, JPG)",
+                  "API access (1000 calls/mo)",
+                ]}
+              />
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/40 p-5">
               <h3 className="text-lg font-semibold">Pack</h3>
@@ -576,6 +633,9 @@ function HomePage() {
               >
                 {isCheckoutLoading ? "Processing..." : "Buy a pack"}
               </Button>
+              <PlanFeatures
+                items={["Everything in Pro", "Unlimited calls", "Customer support"]}
+              />
             </div>
           </div>
         </DialogContent>
@@ -601,6 +661,19 @@ function FeatureCard({
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
     </div>
+  );
+}
+
+function PlanFeatures({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-5 space-y-2 text-left">
+      {items.map((item) => (
+        <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
+          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

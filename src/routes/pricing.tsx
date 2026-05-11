@@ -4,7 +4,9 @@ import { MarketingShell } from "@/components/marketing-shell";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { createRazorpayOrder } from "@/server/razorpay";
+import { createRazorpayOrder } from "@/actions/razorpay";
+import { useAuth } from "@/components/auth-provider";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -13,7 +15,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Simple pricing for AI background removal. Start free with 5 images per day. Go Pro for unlimited.",
+          "Simple pricing for AI background removal. Start free with 2 credits. Go Pro for 10 credits.",
       },
       { property: "og:title", content: "Fixi AI Pricing" },
       { property: "og:description", content: "Free to start. Pro for unlimited cutouts." },
@@ -25,61 +27,55 @@ export const Route = createFileRoute("/pricing")({
 const tiers = [
   {
     name: "Free",
-    price: "$0",
+    price: "₹0",
     cadence: "forever",
-    desc: "Perfect for trying it out and occasional use.",
+    desc: "A free daily allowance for light background removal.",
     cta: "Start free",
     href: "/register",
     variant: "glow" as const,
     features: [
-      "5 images per day",
-      "Up to 10 MB per image",
-      "PNG output with transparency",
-      "24h auto-delete",
-      "Web app access",
-    ],
-  },
-  {
-    name: "Pro",
-    price: "$12",
-    cadence: "per month",
-    desc: "For creators, sellers, and small teams.",
-    cta: "Upgrade to Pro",
-    variant: "hero" as const,
-    featured: true,
-    payment: true,
-    amount: 1200,
-    currency: "INR",
-    features: [
-      "Unlimited images",
-      "Priority processing queue",
-      "Up to 10 MB per image",
-      "Batch upload (coming soon)",
+      "2 free credits after signup",
+      "Standard quality output",
+      "Basic formats allowed (JPG, PNG)",
       "Email support",
     ],
   },
   {
+    name: "Pro",
+    price: "₹499",
+    cadence: "per month",
+    desc: "For creators and sellers who process images regularly.",
+    cta: "Upgrade to Pro",
+    variant: "hero" as const,
+    featured: true,
+    payment: true,
+    amount: 49900,
+    currency: "INR",
+    features: [
+      "10 credits for one month",
+      "HD quality outputs",
+      "All formats (PNG, WEBP, JPG)",
+      "API access (1000 calls/mo)",
+    ],
+  },
+  {
     name: "Pack",
-    price: "$19",
-    cadence: "one-time · 200 credits",
-    desc: "Top-up that never expires. Pay as you go.",
+    price: "₹999",
+    cadence: "per month",
+    desc: "For teams and automation-heavy workflows.",
     cta: "Buy a pack",
     variant: "glow" as const,
     custom: true,
     payment: true,
-    amount: 1900,
+    amount: 99900,
     currency: "INR",
-    features: [
-      "200 image credits",
-      "Credits never expire",
-      "Stack with any plan",
-      "All Pro features per credit",
-    ],
+    features: ["Everything in Pro", "Unlimited calls", "Customer support"],
   },
 ];
 
 function PricingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const loadRazorpayScript = useCallback(async () => {
@@ -136,15 +132,27 @@ function PricingPage() {
             plan: tier.name,
             website: "https://fixi.ai",
           },
-          handler: (response: any) => {
+          handler: async (response: any) => {
+            if (user && tier.name === "Pro") {
+              await supabase
+                .from("profiles")
+                .update({
+                  plan: "pro",
+                  credits_remaining: 10,
+                  credits_reset_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                })
+                .eq("id", user.id);
+            }
             toast.success("Payment completed successfully.");
             setIsCheckoutLoading(false);
           },
           modal: {
+            confirm_close: true,
             ondismiss: () => {
               setIsCheckoutLoading(false);
             },
           },
+          retry: { enabled: true, max_count: 3 },
         });
 
         checkout.open();
@@ -154,7 +162,7 @@ function PricingPage() {
         setIsCheckoutLoading(false);
       }
     },
-    [loadRazorpayScript],
+    [loadRazorpayScript, user],
   );
 
   return (
@@ -236,8 +244,7 @@ function PricingPage() {
         </div>
 
         <p className="mt-12 text-center text-xs text-muted-foreground">
-          All prices shown are in USD-style labels, with Razorpay checkout processing INR amounts.
-          Payments are handled through the Razorpay popup.
+          All prices are shown in INR. Payments are handled securely through Razorpay.
         </p>
       </section>
     </MarketingShell>

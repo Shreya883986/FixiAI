@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/login")({
@@ -32,6 +32,7 @@ function LoginPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (user) navigate({ to: "/app" });
@@ -103,13 +104,25 @@ function LoginPage() {
                   Forgot?
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                {...form.register("password")}
-                className="mt-1.5"
-              />
+              <div className="relative mt-1.5">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  {...form.register("password")}
+                  className="pr-11"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 text-muted-foreground"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
               {form.formState.errors.password && (
                 <p className="mt-1 text-xs text-destructive">
                   {form.formState.errors.password.message}
