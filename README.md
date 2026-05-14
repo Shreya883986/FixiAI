@@ -182,17 +182,34 @@ curl -X POST https://your-api-endpoint.com/remove-background \
 Add screenshots of:
 
 * Homepage
+![Homepage](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(3).png)
+
+* Features page
+![Features](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(32).png)
+
+* Sign-in page
+![Sign in](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(14).png)
+
+* Login page
+![Login](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(35).png)
+
+* Dashboard 
+![Dashboard](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(36).png)
+
 * Upload page
+![Upload page](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(37).png)
+
 * Processing screen
-* Final transparent image output
-* Dashboard
+ ![Processing screen](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(39).png)
 
-Example:
+* History 
+ ![History](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(40).png)
 
-```md
-![Homepage](./screenshots/home.png)
-![Result](./screenshots/result.png)
-```
+* Pricing Page
+ ![Pricing](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(41).png)
+
+* Setting page
+ ![Settings](https://github.com/Shreya883986/FixiAI/blob/5cef37eff1ce8b9e28f0d8ee069d3aae00458162/2026-05-14%20(42).png)
 
 ---
 
