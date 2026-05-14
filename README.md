@@ -218,11 +218,9 @@ Add screenshots of:
 * Batch image processing
 * AI image enhancement
 * Background replacement
-* Drag-and-drop uploads
 * Real-time processing progress
 * Browser extension support
-* Public API documentation
-
+  
 ---
 
 ## 📄 License
