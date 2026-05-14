@@ -97,7 +97,7 @@ async function requireMatchingUser(userId: string | undefined, accessToken: stri
 
 /**
  * Remove background from an image.
- * Current implementation: Sends binary image to n8n webhook and handles JSON response with image URL.
+ * Sends the uploaded image to n8n as multipart/form-data binary and stores the processed result.
  */
 export const removeBackground = createServerFn({ method: "POST" })
   .inputValidator(removeBackgroundSchema)
@@ -215,26 +215,22 @@ export const removeBackground = createServerFn({ method: "POST" })
 
     const N8N_WEBHOOK_URL =
       process.env.N8N_WEBHOOK_URL?.trim() ||
-      "https://shreyagupta1010.app.n8n.cloud/webhook/remove-background";
+      "https://shreya1102.app.n8n.cloud/webhook/remove-background";
 
     try {
       let resultBase64 = originalDataUrl;
       let resultBuffer: Buffer | null = null;
+      let resultMimeType = "image/png";
 
       if (N8N_WEBHOOK_URL) {
-        // Sending to n8n in binary format (multipart/form-data)
-        const formData = new FormData();
-
         // Extract mime and buffer from data URL
         const [header, base64Data] = originalDataUrl.includes(",")
           ? originalDataUrl.split(",")
           : ["data:image/png;base64", originalDataUrl];
         const mime = header.match(/:(.*?);/)?.[1] || "image/png";
         const buffer = Buffer.from(base64Data, "base64");
-
-        // Create a File object for multipart upload
-        const file = new File([buffer], "image.png", { type: mime });
-        formData.append("image", file);
+        const extension = mime.split("/")[1]?.replace("jpeg", "jpg") || "png";
+        const filename = originalFilename || `upload.${extension}`;
 
         // In n8n, production webhooks use /webhook/... while editor test runs use /webhook-test/...
         // If production endpoint is unavailable (404), retry the test endpoint automatically.
@@ -246,6 +242,13 @@ export const removeBackground = createServerFn({ method: "POST" })
         let apiResp: Response | null = null;
         let lastErrorText = "";
         for (const webhookUrl of webhookCandidates) {
+          // Fresh form data per request keeps the binary stream intact if we retry the test webhook.
+          const formData = new FormData();
+          const file = new File([buffer], filename, { type: mime });
+          formData.append("image", file, filename);
+          formData.append("filename", filename);
+          formData.append("mimeType", mime);
+
           const resp = await fetch(webhookUrl, {
             method: "POST",
             body: formData,
@@ -270,7 +273,8 @@ export const removeBackground = createServerFn({ method: "POST" })
 
         if (contentType.startsWith("image/")) {
           resultBuffer = Buffer.from(await apiResp.arrayBuffer());
-          resultBase64 = `data:${contentType.split(";")[0]};base64,${resultBuffer.toString("base64")}`;
+          resultMimeType = contentType.split(";")[0];
+          resultBase64 = `data:${resultMimeType};base64,${resultBuffer.toString("base64")}`;
         } else {
           const responseText = await apiResp.text();
           if (!responseText.trim()) {
@@ -316,14 +320,16 @@ export const removeBackground = createServerFn({ method: "POST" })
 
           if (maybeBinary?.data) {
             const mimeType = maybeBinary.mimeType || maybeBinary.mime || "image/png";
+            resultMimeType = mimeType;
             resultBuffer = Buffer.from(maybeBinary.data, "base64");
             resultBase64 = `data:${mimeType};base64,${resultBuffer.toString("base64")}`;
           } else if (maybeImageUrl) {
             const imgResp = await fetch(maybeImageUrl);
             if (!imgResp.ok) throw new Error("Failed to fetch processed image from n8n");
 
+            resultMimeType = imgResp.headers.get("content-type")?.split(";")[0] || "image/png";
             resultBuffer = Buffer.from(await imgResp.arrayBuffer());
-            resultBase64 = `data:image/png;base64,${resultBuffer.toString("base64")}`;
+            resultBase64 = `data:${resultMimeType};base64,${resultBuffer.toString("base64")}`;
           } else {
             throw new Error(
               `n8n webhook returned unexpected payload. Expected image_url or binary image data. Response: ${JSON.stringify(
@@ -340,7 +346,10 @@ export const removeBackground = createServerFn({ method: "POST" })
         await ensureImageBucket();
         const { error: uploadErr } = await supabaseAdmin.storage
           .from(IMAGE_BUCKET)
-          .upload(`${userId}/${resultFileName}`, resultBuffer || Buffer.from(resultBase64));
+          .upload(`${userId}/${resultFileName}`, resultBuffer || Buffer.from(resultBase64), {
+            contentType: resultMimeType,
+            upsert: false,
+          });
 
         if (uploadErr) throw new Error(`Failed to upload result: ${uploadErr.message}`);
 

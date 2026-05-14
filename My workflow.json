@@ -140,7 +140,7 @@
       {
         "json": {
           "headers": {
-            "host": "shreyagupta1010.app.n8n.cloud",
+            "host": "shreya1102.app.n8n.cloud",
             "user-agent": "node",
             "content-length": "159947",
             "accept": "*/*",
@@ -156,7 +156,7 @@
             "content-type": "multipart/form-data; boundary=----formdata-undici-076107291127",
             "sec-fetch-mode": "cors",
             "x-forwarded-for": "103.44.52.159, 104.22.60.147",
-            "x-forwarded-host": "shreyagupta1010.app.n8n.cloud",
+            "x-forwarded-host": "shreya1102.app.n8n.cloud",
             "x-forwarded-port": "443",
             "x-forwarded-proto": "https",
             "x-forwarded-server": "traefik-prod-users-gwc-91-6c5f66d98-cclbp",
@@ -166,7 +166,7 @@
           "params": {},
           "query": {},
           "body": {},
-          "webhookUrl": "https://shreyagupta1010.app.n8n.cloud/webhook/remove-background",
+          "webhookUrl": "https://shreya1102.app.n8n.cloud/webhook/remove-background",
           "executionMode": "production"
         },
         "binary": {
